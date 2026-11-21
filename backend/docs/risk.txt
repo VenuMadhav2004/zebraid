@@ -1,0 +1,12 @@
+Remaining risks:
+1. Rotate the database password. It was pasted into this chat earlier.
+2. If the final database commit fails after a successful upload, the file stays in the bucket with no row. Add a cleanup job before production.
+3. Some rules are still enforced only in Python, not the database:
+   - which image kinds can go in a gallery;
+   - which image kinds a run can use;
+   - that a matched reference belongs to the candidate zebra;
+   - the order run statuses move in.
+4. There's no user ownership or auth yet.
+5. EXIF and GPS data in uploaded photos are not stripped.
+6. Nisan's schema on the team repo also defines zebras and sightings, so the two must never be migrated into the same database.
+7. ZebraID/ is not a git repository, so none of this work is under version control yet.

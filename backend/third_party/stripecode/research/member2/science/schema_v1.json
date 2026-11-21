@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stripecode.invalid/schemas/science-envelope-v1.json",
+  "title": "STRIPECODE research science v1 envelope",
+  "type": "object",
+  "required": ["schema_version", "ok"],
+  "properties": {
+    "schema_version": {"const": "stripecode.science.envelope.v1"},
+    "ok": {"type": "boolean"},
+    "result": {"type": "object", "required": ["schema_version", "roi", "files", "frequency", "spectrum", "measurements", "filter", "warnings"], "properties": {"schema_version": {"const": "stripecode.science.v1"}, "roi": {"type": "array", "minItems": 4, "maxItems": 4, "items": {"type": "integer"}}, "files": {"type": "object"}, "warnings": {"type": "array", "items": {"type": "string"}}}},
+    "error": {"type": "object", "required": ["type", "message"], "properties": {"type": {"type": "string"}, "message": {"type": "string"}}}
+  },
+  "oneOf": [{"properties": {"ok": {"const": true}}, "required": ["result"]}, {"properties": {"ok": {"const": false}}, "required": ["error"]}]
+}

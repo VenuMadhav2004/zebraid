@@ -1,0 +1,48 @@
+{
+  "region_id": "flank_left_mid",
+  "anatomical_name": "Mid Left Flank Torso",
+  "p1_range": [
+    -15.0,
+    15.0
+  ],
+  "p2_range": [
+    6.0,
+    32.0
+  ],
+  "p3_range": [
+    -1.5319355726242065,
+    1.0396418571472168
+  ],
+  "sample_count": 43369,
+  "resolution": [
+    512,
+    512
+  ],
+  "mean_color_rgb": [
+    0.19900032877922058,
+    0.19793584942817688,
+    0.20861570537090302
+  ],
+  "provenance": {
+    "source_scan": "Zebra1_flat64_model.obj",
+    "principal_normal": [
+      0.10769470036029816,
+      -0.6525389552116394,
+      -0.7500631809234619
+    ],
+    "principal_u1": [
+      0.3426559567451477,
+      0.7325865626335144,
+      -0.5881358981132507
+    ],
+    "principal_u2": [
+      -0.9332677721977234,
+      0.1936745047569275,
+      -0.30249205231666565
+    ],
+    "units": "arbitrary_scan_units_uncalibrated",
+    "description": "Central lateral torso stripes on left flank, high contrast vertical/oblique patterns."
+  },
+  "image_file": "flank_left_mid.png",
+  "mask_file": "flank_left_mid_mask.png"
+}

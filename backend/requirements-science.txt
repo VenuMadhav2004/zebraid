@@ -1,0 +1,13 @@
+# Scientific analysis & MegaDescriptor-L-384 CPU dependencies for STRIPEFORGE (Python 3.10).
+# For CPU-only PyTorch, install torch/torchvision first from PyTorch's CPU index:
+#   pip install --index-url https://download.pytorch.org/whl/cpu torch==2.4.1 torchvision==0.19.1
+#   pip install -r requirements-science.txt
+# Note: Do NOT pin Pillow==10.4.0; the app uses Pillow 12.3.0 which is verified
+# compatible with matplotlib 3.9.4, timm 1.0.28, and both research APIs.
+numpy==1.26.4
+scipy==1.14.1
+opencv-python-headless==4.11.0.86
+scikit-image==0.25.2
+matplotlib==3.9.4
+timm==1.0.28
+jsonschema==4.23.0

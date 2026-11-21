@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stripecode.invalid/schemas/science-request-v1.json",
+  "title": "Proposed transport-independent science v1 options",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "source_reference": {"type": "string", "minLength": 1, "maxLength": 256},
+    "roi": {"type": "array", "minItems": 4, "maxItems": 4, "prefixItems": [{"type": "integer", "minimum": 0}, {"type": "integer", "minimum": 0}, {"type": "integer", "minimum": 16}, {"type": "integer", "minimum": 16}], "items": false},
+    "filter_type": {"enum": ["gaussian", "butterworth", "bandpass"], "default": "gaussian"},
+    "cutoff_cpp": {"type": "number", "minimum": 0.00001, "maximum": 0.5, "default": 0.06},
+    "band_low_cpp": {"type": "number", "minimum": 0.00001, "maximum": 0.5, "default": 0.03}
+  }
+}
