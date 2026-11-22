@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime, timezone
 from types import SimpleNamespace
 
 import httpx
@@ -123,11 +124,12 @@ def test_assistant_grounds_prompt_in_real_db_records_and_analyses_and_history(ap
             image_asset_id=uuid.UUID(img["id"]),
             kind=AnalysisKind.STRIPE_MORPHOLOGY,
             roi={"x": 0, "y": 0, "width": 120, "height": 90},
-            roi_mode=RoiMode.FULL_IMAGE,
+            roi_mode=RoiMode.AUTO,
             parameters={},
             provider={"name": "member1", "version": "1.0.0"},
         )
         job.status = RunStatus.COMPLETED
+        job.completed_at = datetime.now(timezone.utc)
         job.result = {
             "stripe_width_px": {"mean": 11.75, "std": 1.2},
             "quality_metrics": {"confidence_score": 0.84},

@@ -15,7 +15,14 @@ from __future__ import annotations
 import importlib.util
 import logging
 import os
-import resource
+
+if not hasattr(os, "fchmod"):
+    # Windows lacks os.fchmod, which vendored CpuGalleryIndex._persist calls on the temp NPZ file.
+    os.fchmod = lambda _fd, _mode: None  # type: ignore[attr-defined]
+try:
+    import resource
+except ImportError:
+    resource = None  # type: ignore[assignment]
 import sys
 import threading
 import time
@@ -132,7 +139,7 @@ def _resolve_gallery_cache_path(settings: Settings) -> Path:
 
 
 def _current_rss_mb() -> float | None:
-    """Measure current process RSS in MiB (Linux /proc/self/status, fallback ru_maxrss)."""
+    """Measure current process RSS in MiB (Linux /proc/self/status, POSIX ru_maxrss, or Windows GetProcessMemoryInfo)."""
     try:
         for line in Path("/proc/self/status").read_text(encoding="utf-8").splitlines():
             if line.startswith("VmRSS:"):
@@ -141,10 +148,45 @@ def _current_rss_mb() -> float | None:
     except Exception:
         pass
     try:
-        kb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-        return round(kb / 1024.0, 2)
+        if resource is not None:
+            kb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+            return round(kb / 1024.0, 2)
     except Exception:
-        return None
+        pass
+    if os.name == "nt":
+        try:
+            import ctypes
+            from ctypes import wintypes
+
+            class _PROCESS_MEMORY_COUNTERS(ctypes.Structure):
+                _fields_ = [
+                    ("cb", wintypes.DWORD),
+                    ("PageFaultCount", wintypes.DWORD),
+                    ("PeakWorkingSetSize", ctypes.c_size_t),
+                    ("WorkingSetSize", ctypes.c_size_t),
+                    ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
+                    ("QuotaPagedPoolUsage", ctypes.c_size_t),
+                    ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t),
+                    ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+                    ("PagefileUsage", ctypes.c_size_t),
+                    ("PeakPagefileUsage", ctypes.c_size_t),
+                ]
+
+            counters = _PROCESS_MEMORY_COUNTERS()
+            counters.cb = ctypes.sizeof(counters)
+            k32 = ctypes.windll.kernel32
+            k32.GetCurrentProcess.restype = wintypes.HANDLE
+            k32.K32GetProcessMemoryInfo.argtypes = [
+                wintypes.HANDLE,
+                ctypes.POINTER(_PROCESS_MEMORY_COUNTERS),
+                wintypes.DWORD,
+            ]
+            k32.K32GetProcessMemoryInfo.restype = wintypes.BOOL
+            if k32.K32GetProcessMemoryInfo(k32.GetCurrentProcess(), ctypes.byref(counters), counters.cb):
+                return round(counters.WorkingSetSize / (1024.0 * 1024.0), 2)
+        except Exception:
+            pass
+    return None
 
 
 def get_recognition_status(settings: Settings) -> dict[str, Any]:

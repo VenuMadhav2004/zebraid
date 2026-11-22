@@ -253,7 +253,6 @@ export function MorphologyResultPanel({ job }) {
       )}
 
       <p className="text-[0.6875rem] text-faint">{REGION_ONLY_NOTE}</p>
-      <p className="text-[0.6875rem] text-faint">{REGION_ONLY_NOTE}</p>
       <RawJsonToggle data={res} />
     </Card>
   )

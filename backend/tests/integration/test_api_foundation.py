@@ -25,4 +25,4 @@ def test_db_session_dependency_live(engine):
     with TestClient(app) as c:
         resp = c.get("/_t/revision")
     assert resp.status_code == 200
-    assert resp.json() == {"revision": "4fa9f00adf31"}
+    assert resp.json() == {"revision": "a8d3f2c91b40"}
