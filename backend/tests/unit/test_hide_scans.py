@@ -68,6 +68,62 @@ def test_remote_clients_forbidden_by_default(tmp_path, client_for):
 
 def test_unconfigured_directory_reports_unavailable(client_for):
     body = client_for("").get(S).json()
-    assert body == {"available": False, "reason": body["reason"], "scans": []}
+    assert body == {
+        "available": False,
+        "reason": body["reason"],
+        "unsupported_count": 0,
+        "incomplete_count": 0,
+        "scans": [],
+    }
     assert "HIDE_SCANS_DIR" in body["reason"]
     assert client_for("").get(f"{S}/zebra-1/files/x.obj").status_code == 503
+
+
+def test_register_get_delete_and_local_import_with_dedup_and_missing_texture(tmp_path, client_for):
+    scans_dir = tmp_path / "scans"
+    scans_dir.mkdir()
+    src_dir = tmp_path / "source"
+    _make_scan(src_dir, folder="Zebra 10", stem="Zebra10")
+    # Duplicate of Zebra 10 under a different folder name
+    _make_scan(src_dir, folder="Zebra 10 Copy", stem="Zebra10")
+    # Incomplete scan (missing texture)
+    inc = src_dir / "Zebra Broken"
+    inc.mkdir()
+    (inc / "Broken.obj").write_text("mtllib Broken.mtl\nv 0 0 0\nf 1 1 1\n")
+    (inc / "Broken.mtl").write_text("newmtl m\nmap_Kd missing.png\n")
+    # Unsupported project file
+    (src_dir / "Zebra 10" / "project.psx").write_bytes(b"PSX")
+
+    c = client_for(str(scans_dir))
+    imp = c.post(f"{S}/import", json={"source_dir": str(src_dir)})
+    assert imp.status_code == 200, imp.text
+    summary = imp.json()
+    assert summary["imported"] == ["zebra-10"]
+    assert len(summary["duplicates"]) == 1
+    assert summary["duplicates"][0]["duplicate_of"] == "zebra-10"
+    assert len(summary["failed"]) == 1
+    assert summary["failed"][0]["status"] == "missing_texture"
+    assert summary["unsupported_count"] >= 1
+
+    # Incremental re-import skips existing without overwriting
+    imp2 = c.post(f"{S}/import", json={"source_dir": str(src_dir)})
+    assert imp2.status_code == 200
+    assert imp2.json()["imported"] == []
+    assert imp2.json()["skipped_existing"] == ["zebra-10"]
+
+    # GET /{asset_id}
+    detail = c.get(f"{S}/zebra-10")
+    assert detail.status_code == 200
+    assert detail.json()["validation_status"] == "valid"
+    assert detail.json()["sha256"]
+    assert c.get(f"{S}/missing-id").status_code == 404
+
+    # POST /register validates folder name (rejects traversal) and registers valid subfolder
+    assert c.post(f"{S}/register", json={"folder_name": "../etc"}).status_code == 422
+    reg = c.post(f"{S}/register", json={"folder_name": "Zebra 10", "dataset_source": "manual"})
+    assert reg.status_code == 201
+    assert reg.json()[0]["dataset_source"] == "manual"
+
+    # DELETE /{asset_id}
+    assert c.delete(f"{S}/zebra-10").status_code == 204
+    assert c.delete(f"{S}/zebra-10").status_code == 404

@@ -14,6 +14,8 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0', // reachable from outside the container
       port: 5173,
       strictPort: true,
+      hmr: false,
+      allowedHosts: ['.ngrok-free.app', '.ngrok-free.dev', '.ngrok.io', '.ngrok.app'],
       // Browser calls /api/* on the Vite origin; Vite forwards to FastAPI.
       // First matching key wins, so the more specific /api/v1 rule must come first.
       proxy: {
@@ -21,6 +23,8 @@ export default defineConfig(({ mode }) => {
         '/api/v1': {
           target,
           changeOrigin: true,
+          timeout: 0,
+          proxyTimeout: 0,
         },
         // Unversioned probes: backend serves /health and /health/db at the root,
         // so /api/health -> /health.

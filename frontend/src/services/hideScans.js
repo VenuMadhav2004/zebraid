@@ -3,6 +3,15 @@ import { apiV1 } from './api.js'
 
 export const listHideScans = () => apiV1.get('/hide-scans').then((r) => r.data)
 
+export const getHideScan = (assetId) => apiV1.get(`/hide-scans/${encodeURIComponent(assetId)}`).then((r) => r.data)
+
+export const importHideScans = (payload = {}) => apiV1.post('/hide-scans/import', payload, { timeout: 0 }).then((r) => r.data)
+
+export const registerHideScan = (folderName, datasetSource = 'manual') =>
+  apiV1.post('/hide-scans/register', { folder_name: folderName, dataset_source: datasetSource }).then((r) => r.data)
+
+export const deleteHideScan = (assetId) => apiV1.delete(`/hide-scans/${encodeURIComponent(assetId)}`)
+
 const MIME = { obj: 'text/plain', mtl: 'text/plain' }
 
 /**
